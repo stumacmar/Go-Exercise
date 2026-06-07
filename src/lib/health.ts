@@ -83,8 +83,9 @@ export function calorieNudges(opts: {
     });
   }
 
-  // Protein floor — muscle preservation in a deficit.
-  if (protein < proteinTarget) {
+  // Protein floor — muscle preservation in a deficit. Only nudge once the day
+  // has actually started (something logged), so a fresh day stays quiet.
+  if (hasAnyFood && protein < proteinTarget) {
     const gap = Math.max(0, Math.round(proteinTarget - protein));
     nudges.push({
       level: 'warn',
