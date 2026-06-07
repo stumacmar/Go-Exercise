@@ -97,6 +97,21 @@ in. (In local dev the magic-link email is sent by Supabase's built-in mailer.)
 
 ## Deploy to Vercel
 
+> ⚠️ **GitHub Pages will not work** for this app. Pages only serves static
+> files — Reset needs a live server for its API routes (`/api/food`),
+> Supabase auth, and middleware. Use Vercel (free), which runs Next.js natively.
+
+**One-click:** complete steps 1–4 of *Setup* above first (you need your two
+Supabase env values), then click:
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fstumacmar%2FGo-Exercise&env=NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY,NEXT_PUBLIC_SITE_URL&envDescription=Supabase%20URL%20%2B%20anon%20key%20and%20your%20site%20URL&envLink=https%3A%2F%2Fgithub.com%2Fstumacmar%2FGo-Exercise%234-copy-your-env-vars)
+
+Vercel will ask for the three env vars during import. After the first deploy,
+set `NEXT_PUBLIC_SITE_URL` to the URL Vercel gives you and redeploy, then add
+that URL to Supabase's Auth settings (see step 6).
+
+**Or manually:**
+
 1. **Push to GitHub** (this repo / branch).
 2. Go to <https://vercel.com> → **Add New… → Project** → import the repo.
 3. Framework preset is auto-detected as **Next.js**. No build settings needed.
