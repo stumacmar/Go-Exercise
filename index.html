@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#eaf2f8" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0e1620" media="(prefers-color-scheme: dark)">
-<meta name="description" content="The best time to go out today — for cyclists, runners and open water swimmers.">
-<title>Go Window · v1.0.3</title>
+<meta name="description" content="Go Window scores every daylight hour for cycling, running and open-water swimming, then tells you the best time to head out — today and the next three days.">
+<title>Go Window · v1.1.0</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -84,6 +84,19 @@
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body { margin: 0; padding: 0; }
+
+/* Keyboard users get a clear, consistent focus ring; mouse/touch don't. */
+:focus { outline: none; }
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
 html { -webkit-text-size-adjust: 100%; }
 body {
   font-family: var(--font-ui);
@@ -117,6 +130,7 @@ body {
   letter-spacing: -0.02em;
   line-height: 1;
   display: flex; align-items: baseline; gap: 8px;
+  margin: 0;
 }
 .brand .dot {
   display: inline-block;
@@ -127,10 +141,13 @@ body {
 }
 
 .loc-pill {
+  appearance: none; -webkit-appearance: none;
+  font-family: inherit;
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: 999px;
-  padding: 8px 13px 8px 11px;
+  padding: 11px 14px 11px 12px;
+  min-height: 44px;
   font-size: 13px;
   font-weight: 500;
   color: var(--ink-soft);
@@ -219,15 +236,53 @@ body {
   color: var(--ink-soft);
   letter-spacing: -0.01em;
 }
+.hero .hero-main {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 14px;
+  margin: 4px 0 14px;
+}
 .hero .window {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: clamp(48px, 13vw, 68px);
+  font-size: clamp(42px, 12vw, 64px);
   line-height: 1;
   letter-spacing: -0.035em;
-  margin: 4px 0 14px;
   font-variant-numeric: tabular-nums;
+  min-width: 0;
 }
+
+/* Score ring — closes like a dial as the window quality approaches 100. */
+.score-ring { flex: 0 0 auto; width: 76px; height: 76px; }
+.score-ring .track { fill: none; stroke: var(--line); stroke-width: 7; }
+.score-ring .meter {
+  fill: none; stroke-width: 7; stroke-linecap: round;
+  transform: rotate(-90deg); transform-origin: 50% 50%;
+  transition: stroke-dashoffset .9s cubic-bezier(.2,.7,.2,1), stroke .35s ease;
+}
+.score-ring .num {
+  font-family: var(--font-display);
+  font-weight: 700; font-size: 24px;
+  fill: var(--ink);
+}
+.score-ring .of {
+  font-family: var(--font-ui);
+  font-weight: 600; font-size: 8.5px;
+  letter-spacing: .08em;
+  fill: var(--muted);
+}
+
+.hero .next-up {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-left: 10px;
+  font-size: 13px; font-weight: 600;
+  color: var(--accent);
+}
+.hero .next-up .pulse {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--prime);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100% { opacity: 1; transform: scale(1);} 50% { opacity: .45; transform: scale(.8);} }
 .hero .chip-band {
   display: inline-block;
   padding: 7px 13px;
@@ -317,6 +372,9 @@ body {
   cursor: pointer;
   position: relative;
   transition: transform .18s ease;
+  appearance: none; -webkit-appearance: none;
+  background: transparent; border: 0; padding: 0;
+  font: inherit; color: inherit;
 }
 .hour:active { transform: translateY(1px); }
 .hour .bar-wrap {
@@ -358,6 +416,20 @@ body {
 }
 .hour.dim { opacity: 0.32; }
 
+.legend {
+  display: flex; flex-wrap: wrap; gap: 4px 14px;
+  padding: 8px 10px 2px;
+  border-top: 1px solid var(--line);
+  margin-top: 2px;
+}
+.legend .key {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 10.5px; font-weight: 600;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--muted);
+}
+.legend .swatch { width: 9px; height: 9px; border-radius: 3px; }
+
 .hour-detail {
   margin-top: 10px;
   padding: 12px 14px;
@@ -373,8 +445,18 @@ body {
 .hour-detail .row { display: flex; flex-wrap: wrap; gap: 6px 18px; }
 .hour-detail .row .item { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-soft); }
 .hour-detail .row .item strong { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
-.hour-detail .head { display:flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
-.hour-detail .head .t { font-family: var(--font-display); font-weight: 700; font-size: 22px; letter-spacing: -0.02em; }
+.hour-detail .head { display:flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; }
+.hour-detail .head .t { font-family: var(--font-display); font-weight: 700; font-size: 22px; letter-spacing: -0.02em; margin-right: auto; }
+.hour-detail .close-detail {
+  appearance: none; -webkit-appearance: none;
+  border: 0; background: var(--card);
+  color: var(--muted);
+  width: 28px; height: 28px; border-radius: 50%;
+  font-size: 15px; line-height: 1;
+  cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.hour-detail .close-detail:active { background: var(--line); }
 .hour-detail .head .score-chip {
   font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.06em;
 }
@@ -526,11 +608,14 @@ body {
   border-radius: var(--radius-sm);
 }
 .search-result {
-  padding: 12px;
+  appearance: none; -webkit-appearance: none;
+  border: 0; background: transparent;
+  width: 100%; font-family: inherit; color: inherit; text-align: left;
+  padding: 13px 12px;
   border-bottom: 1px solid var(--line);
   cursor: pointer;
   font-size: 15px;
-  display: flex; justify-content: space-between; align-items: center;
+  display: flex; justify-content: space-between; align-items: center; gap: 8px;
 }
 .search-result:last-child { border-bottom: 0; }
 .search-result:active { background: var(--card-2); }
@@ -543,21 +628,27 @@ body {
 .saved-chip {
   background: var(--card-2);
   border: 1px solid var(--line-strong);
-  padding: 8px 14px;
+  padding: 6px 8px 6px 14px;
   border-radius: 999px;
   font-size: 13px; font-weight: 600;
   color: var(--ink-soft);
-  cursor: pointer;
   display: inline-flex; align-items: center; gap: 6px;
   transition: background .15s, border-color .15s;
 }
 .saved-chip:active { transform: scale(.97); }
+.saved-chip .go {
+  appearance: none; -webkit-appearance: none;
+  border: 0; background: transparent; padding: 4px 0;
+  font: inherit; color: inherit; cursor: pointer;
+}
 .saved-chip .x {
-  width: 14px; height: 14px; border-radius: 50%;
+  appearance: none; -webkit-appearance: none;
+  border: 0; cursor: pointer;
+  width: 22px; height: 22px; border-radius: 50%;
   display: inline-flex; align-items: center; justify-content: center;
   background: var(--line-strong); color: var(--ink-soft);
-  font-size: 10px; font-weight: 700;
-  margin-left: 4px;
+  font-size: 11px; font-weight: 700;
+  padding: 0;
 }
 .saved-chip .x:hover { background: var(--avoid); color: #fff; }
 
@@ -635,22 +726,84 @@ body {
 
 /* ============ REFRESH PILL ============ */
 .refresh {
-  display: inline-flex; align-items: center; gap: 4px;
+  display: inline-flex; align-items: center; gap: 5px;
   cursor: pointer;
+  appearance: none; -webkit-appearance: none;
+  border: 0; background: transparent;
+  font-family: inherit;
   color: var(--muted);
-  font-size: 11px;
-  padding: 4px 8px;
+  font-size: 11px; font-weight: 500;
+  padding: 6px 9px;
+  margin: -6px -9px -6px 0;
   border-radius: 999px;
   user-select: none;
 }
 .refresh:active { background: var(--card-2); }
-.refresh svg { width: 12px; height: 12px; }
+.refresh svg { width: 12px; height: 12px; flex-shrink: 0; }
+.refresh.spinning svg { animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ============ TOAST ============ */
+.toast {
+  position: fixed;
+  left: 50%; bottom: calc(24px + env(safe-area-inset-bottom));
+  transform: translate(-50%, 12px);
+  background: var(--ink);
+  color: var(--bg);
+  font-size: 13px; font-weight: 600;
+  padding: 11px 18px;
+  border-radius: 999px;
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s ease, transform .25s cubic-bezier(.2,.7,.2,1);
+  z-index: 80;
+  max-width: 86vw;
+  text-align: center;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* ============ HOW IT WORKS ============ */
+.how {
+  margin-top: 22px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.how summary {
+  cursor: pointer;
+  padding: 14px 16px;
+  font-weight: 600; font-size: 14px;
+  color: var(--ink-soft);
+  list-style: none;
+  display: flex; align-items: center; justify-content: space-between;
+  border-radius: var(--radius);
+}
+.how summary::-webkit-details-marker { display: none; }
+.how summary::after {
+  content: '+';
+  font-size: 18px; font-weight: 500; color: var(--muted);
+  transition: transform .2s ease;
+}
+.how[open] summary::after { transform: rotate(45deg); }
+.how .how-body {
+  padding: 0 16px 16px;
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.55;
+}
+.how .how-body p { margin: 0 0 10px; }
+.how .how-body p:last-child { margin-bottom: 0; }
+.how .how-body strong { color: var(--ink); }
 
 .save-spot {
   margin-top: 12px;
   display: inline-flex; align-items: center; gap: 6px;
+  appearance: none; -webkit-appearance: none;
+  font-family: inherit; font-weight: 600;
   font-size: 12px; color: var(--accent);
-  cursor: pointer; padding: 6px 10px; border-radius: 999px;
+  cursor: pointer; padding: 8px 12px; border-radius: 999px;
   background: rgba(46,127,196,.08);
   border: 1px solid rgba(46,127,196,.18);
   transition: background .15s;
@@ -660,6 +813,8 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
+  /* Bars normally scale in via animation — show them at full height instead. */
+  .hour .bar { transform: none; }
 }
 
 /* tiny phones */
@@ -676,7 +831,7 @@ body {
 
   <!-- ---------- TOP BAR ---------- -->
   <header class="topbar">
-    <div class="brand"><span class="dot"></span>Go Window</div>
+    <h1 class="brand"><span class="dot" aria-hidden="true"></span>Go Window<span class="sr-only"> — the best time to go out, for cycling, running and open-water swimming</span></h1>
     <button class="loc-pill" id="locPill" aria-label="Change location">
       <svg class="pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M12 22s-7-7.5-7-13a7 7 0 1 1 14 0c0 5.5-7 13-7 13z"/><circle cx="12" cy="9" r="2.5"/>
@@ -687,24 +842,24 @@ body {
 
   <!-- ---------- SPORT TOGGLE ---------- -->
   <div class="sport-toggle" role="tablist" aria-label="Choose sport">
-    <button class="sport-btn active" data-sport="cycling" role="tab">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <button class="sport-btn active" type="button" data-sport="cycling" role="tab" aria-selected="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/>
         <path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" fill="currentColor"/>
         <path d="M12 17.5 8 9l4-2 4 5 3-2"/>
       </svg>
       <span>Cycling</span>
     </button>
-    <button class="sport-btn" data-sport="running" role="tab">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <button class="sport-btn" type="button" data-sport="running" role="tab" aria-selected="false" tabindex="-1">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <circle cx="14" cy="4.5" r="1.7" fill="currentColor"/>
         <path d="m4 13 4-1 2-3 4 2 1 4 3 1"/>
         <path d="m9 22 2-5 3-1-1-4"/>
       </svg>
       <span>Running</span>
     </button>
-    <button class="sport-btn" data-sport="swimming" role="tab">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <button class="sport-btn" type="button" data-sport="swimming" role="tab" aria-selected="false" tabindex="-1">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <circle cx="17" cy="6" r="1.7" fill="currentColor"/>
         <path d="M5 13c1.5-1 3-1 4 0s3 1 4 0 3-1 4 0 3 1 4 0"/>
         <path d="M5 17c1.5-1 3-1 4 0s3 1 4 0 3-1 4 0 3 1 4 0"/>
@@ -718,17 +873,28 @@ body {
   <section class="hero" id="hero" aria-live="polite">
     <div class="label">
       <span>Best Window <span id="dayPill">Today</span></span>
-      <span class="updated" id="updated">—</span>
+      <button class="refresh" id="refreshBtn" type="button" aria-label="Refresh conditions">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/>
+        </svg>
+        <span class="updated" id="updated">—</span>
+      </button>
     </div>
     <div class="verdict-headline" id="heroHeadline">Loading conditions…</div>
-    <div class="window skel" id="heroWindow" style="width: 60%; height: 60px;">·</div>
-    <span class="chip-band band-unknown" id="heroChip">—</span>
+    <div class="hero-main">
+      <div class="window skel" id="heroWindow" style="width: 60%; height: 60px;">·</div>
+      <span id="heroRing"></span>
+    </div>
+    <div>
+      <span class="chip-band band-unknown" id="heroChip">—</span>
+      <span class="next-up" id="heroNext"></span>
+    </div>
     <div class="why" id="heroWhy"><span class="skel" style="display:inline-block; width:80%; height:18px;">·</span></div>
     <div id="heroExtras"></div>
-    <div class="save-spot" id="saveSpotBtn" style="display:none">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+    <button class="save-spot" id="saveSpotBtn" type="button" style="display:none">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
       Save this spot
-    </div>
+    </button>
   </section>
 
   <div id="errorSlot"></div>
@@ -739,8 +905,15 @@ body {
     <span class="day-tag" id="stripDayTag">Today</span>
   </div>
   <div class="strip-wrap">
-    <div class="strip" id="strip"></div>
-    <div class="hour-detail" id="hourDetail"></div>
+    <div class="strip" id="strip" role="group" aria-label="Hourly conditions — tap an hour for details"></div>
+    <div class="hour-detail" id="hourDetail" role="region" aria-label="Hour details"></div>
+    <div class="legend" aria-hidden="true">
+      <span class="key"><span class="swatch band-prime"></span>Prime</span>
+      <span class="key"><span class="swatch band-good"></span>Good</span>
+      <span class="key"><span class="swatch band-ok"></span>OK</span>
+      <span class="key"><span class="swatch band-poor"></span>Poor</span>
+      <span class="key"><span class="swatch band-avoid"></span>Avoid</span>
+    </div>
   </div>
 
   <!-- ---------- 3-DAY OUTLOOK ---------- -->
@@ -766,6 +939,16 @@ body {
     </div>
   </section>
 
+  <!-- ---------- HOW IT WORKS ---------- -->
+  <details class="how">
+    <summary>How the score works</summary>
+    <div class="how-body">
+      <p>Go Window rates every daylight hour from <strong>0 to 100</strong> for your sport, then finds the 2–4 hour stretch with the most consistently high scores — that's your window.</p>
+      <p><strong>Cycling</strong> cares most about wind and gusts, then rain, temperature and UV. <strong>Running</strong> weighs dew point (how muggy it feels), heat, rain, air quality and pollen. <strong>Swimming</strong> looks at water temperature, official water-quality rating, waves, wind and air temperature.</p>
+      <p>Bands: <strong>Prime</strong> 80+, <strong>Good</strong> 60+, <strong>OK</strong> 40+, <strong>Poor</strong> 20+, <strong>Avoid</strong> below 20. The score is guidance, not a guarantee — always use your own judgement.</p>
+    </div>
+  </details>
+
   <!-- ---------- FOOTER ---------- -->
   <div class="footer">
     Weather, marine &amp; air quality data by
@@ -773,15 +956,17 @@ body {
     Water quality:
     <a href="https://environment.data.gov.uk/portalstg/home/" rel="noopener" target="_blank">Environment Agency</a> Open Data.
     <div class="disclaimer">Conditions guidance only — assess safety yourself before entering open water.</div>
+    <div style="margin-top:6px">Go Window v1.1.0</div>
   </div>
 
 </div>
 
 <!-- ---------- LOCATION MODAL ---------- -->
-<div class="modal-backdrop" id="locModal" role="dialog" aria-modal="true">
+<div class="modal-backdrop" id="locModal" role="dialog" aria-modal="true" aria-labelledby="locModalTitle">
   <div class="modal" id="locModalInner">
-    <h3>Where are you going?</h3>
-    <input type="text" class="search-input" id="searchInput" placeholder="Search a place (e.g. Newcastle)" autocomplete="off">
+    <h3 id="locModalTitle">Where are you going?</h3>
+    <p id="modalIntro" style="margin:-6px 0 14px; font-size:13px; color:var(--muted); line-height:1.5; display:none">Pick a spot and Go Window will score every daylight hour for cycling, running or swimming — and find your best time to head out.</p>
+    <input type="text" class="search-input" id="searchInput" placeholder="Search a place (e.g. Newcastle)" autocomplete="off" aria-label="Search for a place">
     <div class="search-results" id="searchResults"></div>
     <div id="savedSpotsLabel" style="font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); margin-top:14px; display:none">Saved spots</div>
     <div class="saved-spots" id="savedSpots"></div>
@@ -789,11 +974,13 @@ body {
       We can also use your phone's location — it stays on this device, we just send the coordinates to Open-Meteo to ask "what's the weather here?".
     </div>
     <div class="modal-actions">
-      <button class="btn ghost" id="modalClose">Cancel</button>
-      <button class="btn" id="useGeoloc">Use my location</button>
+      <button class="btn ghost" id="modalClose" type="button">Cancel</button>
+      <button class="btn" id="useGeoloc" type="button">Use my location</button>
     </div>
   </div>
 </div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
 'use strict';
@@ -878,6 +1065,23 @@ const linearScore = (v, breaks) => {
   }
   return 50;
 };
+
+// Local calendar date as YYYY-MM-DD (toISOString() is UTC and mislabels
+// "Today" around midnight in non-UTC timezones).
+const localISODate = (d = new Date()) => {
+  const p = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
+};
+
+let _toastT;
+function toast(msg) {
+  const el = $('#toast');
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(_toastT);
+  _toastT = setTimeout(() => el.classList.remove('show'), 2400);
+}
 
 const fmtHour = (h) => {
   // h: 0-23 -> "7am" / "12pm"
@@ -1173,7 +1377,7 @@ function groupByDay(hours, sunriseSunset) {
     buckets[h.date].push(h);
   });
   const dates = Object.keys(buckets).sort().slice(0,3);
-  const today = new Date().toISOString().slice(0,10);
+  const today = localISODate();
   return dates.map((d, idx) => {
     const dateObj = new Date(d + 'T12:00');
     let label;
@@ -1339,6 +1543,8 @@ function renderHero(day, allDays) {
   const chip = $('#heroChip');
   const why = $('#heroWhy');
   const extras = $('#heroExtras');
+  const ring = $('#heroRing');
+  const next = $('#heroNext');
   const dayPill = $('#dayPill');
   dayPill.textContent = day.label;
 
@@ -1347,6 +1553,8 @@ function renderHero(day, allDays) {
   windowEl.style.height = '';
 
   extras.innerHTML = '';
+  ring.innerHTML = '';
+  next.innerHTML = '';
 
   // sewage hard-cap
   if (STATE.sport === 'swimming' && STATE.waterQuality?.sewageAlert) {
@@ -1365,11 +1573,12 @@ function renderHero(day, allDays) {
     windowEl.textContent = '—';
     chip.className = 'chip-band band-unknown';
     chip.textContent = '';
-    why.textContent = 'Try another day.';
+    why.textContent = 'There are no scoreable daylight hours left — check the next few days below.';
     return;
   }
 
   const band = bandFor(w.avg);
+  const score = Math.round(w.avg);
 
   // Fallback: if today is poor everywhere, suggest next day
   if (day.label === 'Today' && w.avg < 40) {
@@ -1378,6 +1587,7 @@ function renderHero(day, allDays) {
     windowEl.innerHTML = `<span style="color: var(--muted)">—</span>`;
     chip.className = `chip-band band-${BANDS.find(b=>w.avg>=b.min).name.toLowerCase()}`;
     chip.textContent = `${band.name} at best`;
+    drawRing(ring, score, band);
     let fallbackHtml = whyLine(STATE.sport, w, day.scored);
     if (better) {
       const bb = better.d.best;
@@ -1388,12 +1598,68 @@ function renderHero(day, allDays) {
     return;
   }
 
-  headline.textContent = `Best Window ${day.label}`;
+  headline.textContent = verdictHeadline(band, STATE.sport, day.label);
   windowEl.textContent = fmtWindow(w.startHour, w.endHour);
   chip.className = `chip-band ${band.cls}`;
   chip.textContent = `${band.name} for ${STATE.sport}`;
+  drawRing(ring, score, band);
+  next.innerHTML = nextUpText(day, w);
   why.innerHTML = whyLine(STATE.sport, w, day.scored);
 }
+
+/* Score ring — a dial that fills as window quality approaches 100. */
+function drawRing(container, score, band) {
+  const r = 31;
+  const c = 2 * Math.PI * r;
+  const clamped = Math.max(0, Math.min(100, score));
+  const colorVar = ['prime','good','ok','poor','avoid'].includes(band.name.toLowerCase())
+    ? `var(--${band.name.toLowerCase()})` : 'var(--muted)';
+  container.innerHTML = `
+    <svg class="score-ring" viewBox="0 0 80 80" role="img" aria-label="Window score ${clamped} out of 100 — ${band.name}">
+      <circle class="track" cx="40" cy="40" r="${r}"/>
+      <circle class="meter" cx="40" cy="40" r="${r}" stroke="${colorVar}"
+        stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${c.toFixed(1)}"/>
+      <text class="num" x="40" y="40" text-anchor="middle" dominant-baseline="central">${clamped}</text>
+      <text class="of" x="40" y="58" text-anchor="middle">SCORE</text>
+    </svg>`;
+  // Fill on the next frame so the dial visibly sweeps in.
+  const meter = container.querySelector('.meter');
+  const target = (c * (1 - clamped / 100)).toFixed(1);
+  requestAnimationFrame(() => requestAnimationFrame(() => { meter.style.strokeDashoffset = target; }));
+}
+
+/* One-line verdict so the hero reads as a sentence, not a duplicate label. */
+function verdictHeadline(band, sport, dayLabel) {
+  const move = { cycling: 'ride', running: 'run', swimming: 'swim' }[sport] || 'go';
+  const when = dayLabel === 'Today' ? 'today' : dayLabel === 'Tomorrow' ? 'tomorrow' : `on ${dayLabel}`;
+  switch (band.name) {
+    case 'PRIME': return `Great conditions to ${move} ${when}`;
+    case 'GOOD':  return `A solid window to ${move} ${when}`;
+    case 'OK':    return `Workable ${when} — pick your moment`;
+    case 'POOR':  return `Tough conditions ${when}`;
+    default:      return `Probably one to skip ${when}`;
+  }
+}
+
+/* "What do I do right now?" line under the verdict chip. */
+function nextUpText(day, w) {
+  if (day.label !== 'Today') return '';
+  const now = new Date();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const start = w.startHour * 60, end = w.endHour * 60;
+  if (nowMin >= start && nowMin < end) {
+    return `<span class="pulse" aria-hidden="true"></span>Open now · ${fmtDur(end - nowMin)} left`;
+  }
+  if (nowMin < start) return `Starts in ${fmtDur(start - nowMin)}`;
+  return `<span style="color:var(--muted)">Window has passed — check tomorrow</span>`;
+}
+const fmtDur = (m) => {
+  if (m >= 60) {
+    const h = Math.floor(m / 60), rem = m % 60;
+    return rem ? `${h}h ${rem}m` : `${h}h`;
+  }
+  return `${m}m`;
+};
 
 function renderStrip(day) {
   const strip = $('#strip');
@@ -1404,7 +1670,7 @@ function renderStrip(day) {
   STATE.selectedHourIdx = null;
 
   const now = new Date();
-  const todayDate = now.toISOString().slice(0,10);
+  const todayDate = localISODate(now);
   const nowHour = now.getHours();
 
   day.scored.forEach((s, idx) => {
@@ -1415,9 +1681,12 @@ function renderStrip(day) {
     const past = day.date === todayDate && h.hour < nowHour - 1;
     if (past) return; // skip past hours on today
     const band = bandFor(s.score);
-    const div = document.createElement('div');
+    const div = document.createElement('button');
+    div.type = 'button';
     div.className = `hour${isCurrent ? ' now' : ''}${isDay ? '' : ' dim'}`;
     div.setAttribute('data-idx', idx);
+    div.setAttribute('aria-label', `${fmtHour(h.hour)}${isCurrent ? ' (now)' : ''} — score ${s.score}, ${band.name.toLowerCase()}`);
+    div.setAttribute('aria-expanded', 'false');
     const h2 = Math.max(6, Math.min(110, s.score * 1.05));
     div.innerHTML = `
       <div class="bar-wrap">
@@ -1455,11 +1724,19 @@ function cssBandColor(band) {
 }
 
 function selectHour(day, idx) {
-  STATE.selectedHourIdx = idx;
   const allBars = $$('#strip .hour');
-  allBars.forEach(b => b.classList.remove('selected'));
+  allBars.forEach(b => { b.classList.remove('selected'); b.setAttribute('aria-expanded', 'false'); });
+
+  // Tapping the selected hour again collapses the detail panel
+  if (STATE.selectedHourIdx === idx) {
+    STATE.selectedHourIdx = null;
+    $('#hourDetail').classList.remove('show');
+    return;
+  }
+
+  STATE.selectedHourIdx = idx;
   const target = $(`#strip .hour[data-idx="${idx}"]`);
-  if (target) target.classList.add('selected');
+  if (target) { target.classList.add('selected'); target.setAttribute('aria-expanded', 'true'); }
   const s = day.scored[idx];
   const h = s.hour;
   const detail = $('#hourDetail');
@@ -1482,9 +1759,15 @@ function selectHour(day, idx) {
     <div class="head">
       <span class="t">${fmtHour(h.hour)}</span>
       <span class="score-chip ${band.cls}">${band.name} · ${s.score}</span>
+      <button class="close-detail" type="button" aria-label="Close hour details">✕</button>
     </div>
     <div class="row">${items.join('')}</div>
   `;
+  detail.querySelector('.close-detail').addEventListener('click', () => {
+    STATE.selectedHourIdx = null;
+    detail.classList.remove('show');
+    if (target) { target.classList.remove('selected'); target.setAttribute('aria-expanded', 'false'); }
+  });
   detail.classList.add('show');
 }
 
@@ -1503,7 +1786,12 @@ function renderDays(scoredDays) {
     const w = d.best;
     const band = w ? bandFor(w.avg) : BANDS[BANDS.length-1];
     const el = document.createElement('button');
+    el.type = 'button';
     el.className = `day${i === STATE.dayIdx ? ' active' : ''}`;
+    el.setAttribute('aria-pressed', i === STATE.dayIdx ? 'true' : 'false');
+    el.setAttribute('aria-label', w
+      ? `${d.label}: best window ${fmtWindow(w.startHour, w.endHour)}, ${band.name.toLowerCase()}, score ${Math.round(w.avg)}`
+      : `${d.label}: no window found`);
     el.innerHTML = `
       <div class="d-name">${d.label}</div>
       <div class="d-window">${w ? fmtWindow(w.startHour, w.endHour) : '—'}</div>
@@ -1631,6 +1919,8 @@ function tierToScore(t) {
 
 function showSkeletons() {
   $('#heroHeadline').textContent = 'Loading conditions…';
+  $('#heroRing').innerHTML = '';
+  $('#heroNext').innerHTML = '';
   $('#heroWindow').classList.add('skel');
   $('#heroWindow').style.width = '60%';
   $('#heroWindow').style.height = '60px';
@@ -1698,15 +1988,22 @@ async function tryGeoloc(opts = {}) {
 /* =====================================================================
    MODAL
 ===================================================================== */
+let _modalReturnFocus = null;
 function openModal() {
+  _modalReturnFocus = document.activeElement;
   $('#locModal').classList.add('show');
   renderSavedSpots();
   $('#searchInput').value = '';
   $('#searchResults').innerHTML = '';
   setTimeout(() => $('#searchInput').focus(), 100);
   $('#geoHint').style.display = STATE.location ? 'none' : 'block';
+  $('#modalIntro').style.display = STATE.location ? 'none' : 'block';
 }
-function closeModal() { $('#locModal').classList.remove('show'); }
+function closeModal() {
+  $('#locModal').classList.remove('show');
+  if (_modalReturnFocus && typeof _modalReturnFocus.focus === 'function') _modalReturnFocus.focus();
+  _modalReturnFocus = null;
+}
 
 function renderSavedSpots() {
   const c = $('#savedSpots');
@@ -1715,19 +2012,19 @@ function renderSavedSpots() {
   if (!STATE.savedSpots.length) { label.style.display = 'none'; return; }
   label.style.display = 'block';
   STATE.savedSpots.forEach((s, i) => {
-    const el = document.createElement('div');
+    const el = document.createElement('span');
     el.className = 'saved-chip';
-    el.innerHTML = `<span>${escapeHtml(s.name)}</span><span class="x" data-i="${i}" title="Remove">×</span>`;
-    el.addEventListener('click', e => {
-      if (e.target.classList.contains('x')) {
-        e.stopPropagation();
-        STATE.savedSpots.splice(i, 1);
-        localStorage.setItem(LS.spots, JSON.stringify(STATE.savedSpots));
-        renderSavedSpots();
-      } else {
-        closeModal();
-        setLocation({ lat: s.lat, lon: s.lon, name: s.name, admin1: s.admin1 || '', country: s.country || '' });
-      }
+    el.innerHTML = `<button type="button" class="go">${escapeHtml(s.name)}</button><button type="button" class="x" aria-label="Remove ${escapeHtml(s.name)} from saved spots">×</button>`;
+    el.querySelector('.go').addEventListener('click', () => {
+      closeModal();
+      setLocation({ lat: s.lat, lon: s.lon, name: s.name, admin1: s.admin1 || '', country: s.country || '' });
+    });
+    el.querySelector('.x').addEventListener('click', () => {
+      STATE.savedSpots.splice(i, 1);
+      localStorage.setItem(LS.spots, JSON.stringify(STATE.savedSpots));
+      renderSavedSpots();
+      updateSaveSpotButton();
+      toast(`Removed ${s.name}`);
     });
     c.appendChild(el);
   });
@@ -1742,11 +2039,11 @@ function onSearchInput(e) {
     try {
       const results = await geocodeSearch(q);
       $('#searchResults').innerHTML = results.map(r => `
-        <div class="search-result" data-lat="${r.latitude}" data-lon="${r.longitude}" data-name="${escapeHtml(r.name)}" data-admin1="${escapeHtml(r.admin1 || '')}" data-country="${escapeHtml(r.country || '')}">
+        <button type="button" class="search-result" data-lat="${r.latitude}" data-lon="${r.longitude}" data-name="${escapeHtml(r.name)}" data-admin1="${escapeHtml(r.admin1 || '')}" data-country="${escapeHtml(r.country || '')}">
           <span>${escapeHtml(r.name)}${r.admin1 ? `, ${escapeHtml(r.admin1)}` : ''}</span>
           <span class="country">${escapeHtml(r.country || '')}</span>
-        </div>
-      `).join('') || `<div class="search-result"><span style="color:var(--muted)">No matches.</span></div>`;
+        </button>
+      `).join('') || `<div class="search-result" role="status"><span style="color:var(--muted)">No matches — try a nearby town or beach name.</span></div>`;
       $$('#searchResults .search-result[data-lat]').forEach(el => {
         el.addEventListener('click', () => {
           closeModal();
@@ -1781,18 +2078,41 @@ function loadFromLS() {
   } catch(_) {}
 }
 
+function syncSportButtons() {
+  $$('.sport-btn').forEach(b => {
+    const on = b.dataset.sport === STATE.sport;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-selected', on ? 'true' : 'false');
+    b.tabIndex = on ? 0 : -1; // roving tabindex per WAI-ARIA tabs pattern
+  });
+}
+
+function setSport(s, focusBtn = false) {
+  if (s === STATE.sport) return;
+  STATE.sport = s;
+  localStorage.setItem(LS.sport, s);
+  syncSportButtons();
+  if (focusBtn) $(`.sport-btn[data-sport="${s}"]`)?.focus();
+  renderAll();
+  if (s === 'swimming' && STATE.waterQuality == null && !STATE.waterQualityChecked) {
+    loadWaterQuality();
+  }
+}
+
 function wireSport() {
-  $$('.sport-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.sport === STATE.sport);
-    btn.addEventListener('click', () => {
-      const s = btn.dataset.sport;
-      if (s === STATE.sport) return;
-      STATE.sport = s;
-      localStorage.setItem(LS.sport, s);
-      $$('.sport-btn').forEach(b => b.classList.toggle('active', b.dataset.sport === s));
-      renderAll();
-      if (s === 'swimming' && STATE.waterQuality == null && !STATE.waterQualityChecked) {
-        loadWaterQuality();
+  const btns = $$('.sport-btn');
+  syncSportButtons();
+  btns.forEach((btn, i) => {
+    btn.addEventListener('click', () => setSport(btn.dataset.sport));
+    btn.addEventListener('keydown', (e) => {
+      let to = null;
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') to = (i + 1) % btns.length;
+      else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') to = (i - 1 + btns.length) % btns.length;
+      else if (e.key === 'Home') to = 0;
+      else if (e.key === 'End') to = btns.length - 1;
+      if (to != null) {
+        e.preventDefault();
+        setSport(btns[to].dataset.sport, true);
       }
     });
   });
@@ -1802,6 +2122,9 @@ function wireModal() {
   $('#locPill').addEventListener('click', openModal);
   $('#modalClose').addEventListener('click', closeModal);
   $('#locModal').addEventListener('click', e => { if (e.target.id === 'locModal') closeModal(); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && $('#locModal').classList.contains('show')) closeModal();
+  });
   $('#useGeoloc').addEventListener('click', async () => {
     $('#useGeoloc').textContent = 'Locating…';
     const loc = await tryGeoloc();
@@ -1813,16 +2136,19 @@ function wireModal() {
     }
   });
   $('#searchInput').addEventListener('input', onSearchInput);
-  $('#updated').addEventListener('click', loadAll);
+  $('#refreshBtn').addEventListener('click', async () => {
+    if (STATE.loading) return;
+    $('#refreshBtn').classList.add('spinning');
+    try { await loadAll(); } finally { $('#refreshBtn').classList.remove('spinning'); }
+  });
   $('#saveSpotBtn').addEventListener('click', () => {
     if (!STATE.location) return;
-    const name = prompt('Save this spot as…', STATE.location.name);
-    if (!name) return;
-    const spot = { ...STATE.location, name };
+    const spot = { ...STATE.location };
     STATE.savedSpots.unshift(spot);
     STATE.savedSpots = STATE.savedSpots.slice(0, 12);
     localStorage.setItem(LS.spots, JSON.stringify(STATE.savedSpots));
     updateSaveSpotButton();
+    toast(`Saved ${spot.name} — find it under your location`);
   });
 }
 
